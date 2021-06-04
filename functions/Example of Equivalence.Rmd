@@ -1,0 +1,402 @@
+---
+title: "Example of Equivalence"
+author: "Jithin Sam Varghese"
+date: "`r format(Sys.Date(), '%b %d, %Y')`"
+output:
+  pdf_document:
+    includes:
+      keep_tex: FALSE
+      in_header: C:/code/ses_transitions/cohorts_replication/proposal/header.tex
+  word_document: default
+papersize: letter
+geometry: margin=0.2in
+---
+
+```{r setup, include=FALSE}
+warning_status = FALSE
+library(kableExtra)
+knitr::opts_chunk$set(echo = FALSE,warning = warning_status,message = FALSE)
+source("../.Rprofile")
+```
+
+Steps for Asset Index:    
+1. psych::mixedCor() - create polychoric correlation matrix.    
+2. >> psych::principal() - PCA of correlation matrix    
+3. >> extract .$loadings - product of eigen vector and sqrt of eigen values    
+4. >> psych::factor.scores()    
+   - Use standardized data as input (Filmer and Pritchett 2001 uses scaled variables to create asset indices).    
+   - The INCAP BMC MRM paper also uses standardized data (equivalence demonstrated below)    
+5. Standardize the index for a tighter range of scores    
+
+\blandscape
+
+```{r}
+polychoric_out <- readRDS(paste0(path_harmonization_folder,"/guatemala/working/EXAMPLE polychoric_out unscaledX.RDS"))
+pca_df <- readRDS(paste0(path_harmonization_folder,"/guatemala/working/pca_df_unimputed.RDS"))
+
+source(paste0(path_harmonization_repo,"/guatemala/gt_pca_df_imputation.R"))
+x <- pca_df %>% 
+  dplyr::select(-census,-familia,-comuni,-id_uni,-pc,-pc2,-pc3) %>% as.matrix()
+```
+
+
+# What the data looks like
+
+```{r}
+head(x[,1:6]) %>% 
+  knitr::kable()
+```
+
+\pagebreak
+
+# 1. COHORTS paper
+
+## 1.1 L: 'Loadings' from Eigen of polychoric correlation matrix
+
+Based on psych package   
+
+```{r}
+polychoric_out$weights[1:6,1:2] %>% 
+  head()
+```
+
+\pagebreak
+
+## 1.2 U: Loadings from SVD of polychoric correlation matrix
+
+Based on prcomp() of correlation matrix. Note that this is unlike the typical SVD: $X = USV^{T}$ since U = V in this case.    
+
+$$R_{poly} = US_{R}U^{T}$$
+
+```{r}
+prcomp_obj <- prcomp(polychoric_out$polychoric_mat,center = FALSE,scale=FALSE)
+eigen_obj = eigen(polychoric_out$polychoric_mat)
+
+prcomp_obj$rotation[1:6,1:2] # Same as eigen_obj$vectors
+
+```
+
+## 1.3 E: Loadings from Eigen of polychoric correlation matrix
+
+Based on eigen decomposition
+
+$$R_{poly} = E \Lambda E^{-1} $$
+where E = Eigen vectors and $\Lambda$ = diagonal eigen value matrix  
+
+```{r}
+eigen_obj$vectors[1:6,1:2]
+```
+
+Eigen values   
+
+```{r}
+eigen_obj$values[1:6] # Same
+```
+
+
+\pagebreak
+
+
+## 1.4 Equivalence of loadings 
+
+$$ U S^{\frac{1}{2}}$$
+```{r}
+(prcomp_obj$rotation %*% diag(prcomp_obj$sdev))[1:6,1:2] # NOT same as polychoric_out$weights[,]
+
+```
+
+$$L = U \Lambda^{\frac{1}{2}}$$
+```{r}
+(prcomp_obj$rotation %*% diag(sqrt(eigen_obj$values)))[1:6,1:2] # Same as polychoric_out$weights[,]
+```
+
+$$L =  E \Lambda^{\frac{1}{2}}$$
+
+```{r}
+(eigen_obj$vectors[,] %*% diag(sqrt(eigen_obj$values)))[1:6,1:2] # Same as polychoric_out$weights[,]
+```
+
+\pagebreak
+
+## 1.5 Eigen values from principal()
+
+Same as eigen values from decomposition of correlation matrix using eigen()
+
+```{r}
+polychoric_out$eigen_values[1:6]
+```
+
+Ratio of $S^{-1/2}$ to $\Sigma$ gives a constant...   
+
+```{r}
+(prcomp_obj$sdev/eigen_obj$values)[1:6] #Gives a constant = 0.2425356
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+# Checking equivalence with eigen
+prcomp_polycor_obj = prcomp(mixedcor_rho)
+View(pca_obj$loadings[,])
+```
+
+
+\pagebreak
+
+## 1.6 Unstandardized COHORTS Index
+- Rotation: "none"   
+- Method: "components"    
+
+Output from factor.scores()   
+
+```{r}
+polychoric_out$fa.scores[1:10,1:3]
+```
+
+
+We show that below:    
+
+
+$$\text{Unstandardized Index}_{\text{COHORTS}} = (XL)_{column1}$$
+
+```{r}
+# Same as fa.score <-- unscaled scores from psych::factor.scores as suggested in ?psych::factor.scores
+(x %*% polychoric_out$weights)[1:10,1:3]
+```
+
+\pagebreak
+
+We scale each by subtracting the mean and dividing by standard deviation to get our COHORTS asset index (both harmonized and cross-sectional)    
+
+$$\begin{aligned}\text{Standardized Index}_{\text{COHORTS}} &= \frac{\text{Unstandardized Index}_{\text{COHORTS}} - \overline{\text{Unstandardized Index}_{\text{COHORTS}}}}{\sigma_{\text{Unstandardized Index}_{\text{COHORTS}}}} \\
+&= \text{Asset Index}_{\text{COHORTS}}
+\end{aligned}$$
+
+```{r}
+polychoric_out$scores[1:10,1:3]
+```
+
+We show that below:
+```{r}
+((x %*% polychoric_out$weights) %>% apply(.,2,FUN=function(y) scale(y)))[1:10,1:3] # Same as scaled scores from psych::factor.scores
+```
+
+\pagebreak
+
+# 2 INCAP paper in BMC Medical Research Methodology 
+
+## 2.1 U: Loadings from prcomp() SVD of standardized data 
+
+$$X_{standardized} = U_{stdX}S_{stdX}V_{stdX}^{T} $$
+
+```{r}
+prcomp_obj2 <-  prcomp(x,scale =TRUE)
+(prcomp_obj2$rotation)[1:6,1:2]
+```
+
+## 2.2 E: Loadings from eigen() Eigen decomposition of Pearson correlation of raw data
+
+$$R_{pearson} = E_{pearson} \Lambda_{pearson} E_{pearson}^{-1} $$
+
+```{r}
+(eigen(cor(x,use="everything"))$vectors)[1:6,1:2] # Equivalent
+```
+
+\pagebreak
+
+## 2.3 L: "Loadings" from principal() Eigen decomposition of Pearson correlation of raw data
+
+From what we saw before, the Loadings are equivalent to 
+
+$$L = U_{stdX} \Lambda_{pearson}^{\frac{1}{2}}$$
+
+```{r}
+principal_obj2 <- psych::principal(x,scores=TRUE,nfactors = ncol(x),rotate = "none")
+(principal_obj2$loadings[,])[1:6,1:2] # What is taken as polychoric_out$loadings
+```
+
+
+
+Note: The loadings are not confused with 'weights' in principal() which are the beta weights for principal component extraction from raw data     
+
+```{r}
+(principal_obj2$weights[1:6,1:2]) # These are beta weights used to find principal components from the data
+```
+
+
+
+To convert our INCAP SVD decomposition into what is obtained for COHORTS....   
+$$L = U_{stdX} S_{stdX}^{\frac{-1}{2}}$$
+
+```{r}
+(prcomp_obj2$rotation %*% diag(prcomp_obj2$sdev))[1:6,1:2] # Equivalent to principal_obj2
+```
+
+\pagebreak
+
+## 2.4 Eigen values
+
+Unlike the case for the decomposition of a correlation matrix, eigen values in this case would be equal...   
+```{r}
+(prcomp_obj2$sdev^2)[1:3]
+principal_obj2$values[1:3] # Equivalent
+eigen(cor(x,use="everything"))$values[1:3] # Equivalent
+
+```
+
+\pagebreak
+
+## 2.5 Scores for individuals
+
+Scores for prcomp(), i.e., what we used for INCAP: 
+
+```{r}
+(prcomp_obj2$x)[1:10,1:2]
+```
+
+
+## 2.6 INCAP index
+Scores for each individual IS based on data matrix; scaled each VARIABLE (not the PCs) to unit variance
+$$\begin{aligned}\text{Unstandardized Index}_{prcomp} &= X_{standardized} U_{stdX} \\
+&= \text{Asset Index}_{\text{INCAP}}
+\end{aligned}$$
+
+```{r}
+(apply(x,2,FUN=function(y) scale(y)) %*% prcomp_obj2$rotation)[1:10,1:2] # Same as prcomp_obj2$x
+```
+
+These are different from if we did not scale the variables before multiplying them by the loadings as show below.
+
+\pagebreak
+
+## 2.7 Unstandardized Index v2 using prcomp()
+
+$$\begin{aligned}\text{Unstandardized Index v2}_{prcomp} &= X U_{stdX}
+\end{aligned}$$
+
+```{r}
+(x %*% prcomp_obj2$rotation)[1:10,1:2] # Unscaled is different
+```
+
+
+## 2.8 Equivalence of scores using eigen()
+
+$$\begin{aligned}\text{Unstandardized Index}_{eigen} &= X_{standardized} E_{pearson} \\
+ &= \text{Unstandardized Index}_{prcomp} \end{aligned}$$
+ 
+```{r}
+(apply(x,2,FUN=function(y) scale(y))  %*% eigen(cor(x,use="everything"))$vectors)[1:10,1:2] # Same as prcomp_obj2$x
+```
+
+\pagebreak
+
+## 2.9 Unstandardized COHORTS index
+
+We see that using loadings from principal() directly doesn't give us the same result as prcomp() and eigen() on standardized matrix.
+
+$$\text{Unstandardized Index version 1}_{principal} = XL_{pearson} $$
+
+```{r}
+(x %*% principal_obj2$loadings)[1:10,1:2] # NOT same as prcomp_obj2$x; what is used as polychoric_out$fa.scores
+
+```
+
+\pagebreak
+
+## 2.10 Unstandardized Index v2 using principal()
+
+However, a more complicated transformation demonstrates equivalence....   
+
+$$\begin{aligned} 
+\text{Unstandardized Index v2}_{principal} &= X L_{pearson} (\Lambda_{pearson}^{-1/2}) \\
+&= X U_{stdX}(\Lambda_{pearson}^{1/2}) (\Lambda_{pearson}^{-1/2})\\
+&= \text{Unstandardized Index v2}_{prcomp}
+\end{aligned}$$
+
+```{r}
+(x %*% principal_obj2$loadings %*% solve(diag(sqrt(principal_obj2$values))))[1:10,1:2] # same as prcomp_obj2$x
+```
+
+\pagebreak
+
+## 2.11 Standardized COHORTS Index
+
+$$\begin{aligned} \text{Asset Index}_{COHORTS} \\
+&= \frac{\text{Unstandardized Index v1} - \overline{\text{Unstandardized Index v1}}}{\sigma_{\text{Unstandardized Index v1}}}
+\end{aligned}$$
+
+Below is what we use as the harmonized index in the COHORTS paper....   
+```{r}
+((x %*% principal_obj2$loadings) %>% apply(.,2,function(y) scale(y)))[1:10,1:2] # What is used as polychoric_out$scores
+
+```
+
+Below is what we use as the harmonized index as per the INCAP paper after standardization: 
+
+$$\begin{aligned} \text{Index after standardization}_{\text{INCAP}} \\
+&= \frac{\text{Asset Index}_{\text{INCAP}} - \overline{\text{Asset Index}_{\text{INCAP}}}}{\sigma_{\text{Asset Index}_{\text{INCAP}}}}
+\end{aligned}$$
+
+```{r}
+(prcomp_obj2$x %>% apply(.,2,function(y) scale(y)))[1:10,1:2]
+```
+
+\pagebreak
+
+Correlation between them:
+```{r}
+stdzd_incap_index = (prcomp_obj2$x %>% apply(.,2,function(y) scale(y)))[,1]
+cohorts_index = ((x %*% principal_obj2$loadings) %>% apply(.,2,function(y) scale(y)))[,1]
+cor.test(stdzd_incap_index,cohorts_index,
+      method ="spearman")
+```
+
+### Why we need to use standardized data (all input as scaled variables)
+
+The indices are not perfectly correlated because in one case we use X (COHORTS) and in the other case we use $X_{standardized}$ (INCAP BMC paper). In a situation such as ours when we are dealing with predominantly ordinal or binary variables, these approaches will give almost similar results. However, if there are variables with a large variance (say a continuous variable which is of a different order of magnitude), then these approaches will give different results.    
+
+
+```{r}
+plot((prcomp_obj2$x %>% apply(.,2,function(y) scale(y)))[,1],
+      ((x %*% principal_obj2$loadings) %>% apply(.,2,function(y) scale(y)))[,1],
+     xlab = "INCAP Index after standardization",
+     ylab = "COHORTS Index")
+```
+
+\pagebreak
+
+## 2.12 Using standardized data with principal() loadings
+
+$$\begin{aligned}\text{Unstandardized Index v3}_{principal} &= X_{standardized} L_{pearson} (\Lambda_{pearson}^{-1/2}) \\
+&= X_{standardized} U_{stdX} (\Lambda_{pearson}^{1/2}) (\Lambda_{pearson}^{-1/2})\\
+&= \text{Asset Index}_{\text{INCAP}}
+\end{aligned}$$
+
+```{r}
+(apply(x,2,function(y) scale(y)) %*% principal_obj2$loadings %*% solve(diag(sqrt(principal_obj2$values))))[1:10,1:2]
+```
+
+Correlation between them:
+```{r}
+incap_index = (prcomp_obj2$x)[,1]
+cohorts_index_with_stdX = ((apply(x,2,function(y) scale(y)) %*% principal_obj2$loadings))[,1]
+cor.test(incap_index,cohorts_index_with_stdX,
+      method ="spearman")
+```
+
+
+```{r}
+plot(incap_index,
+      cohorts_index_with_stdX,
+     xlab = "INCAP Index as per BMC paper",
+     ylab = "COHORTS Index with standardized data")
+```
+
+```{r}
+plot(scale(incap_index),
+      scale(cohorts_index_with_stdX),
+     xlab = "INCAP Index as per BMC paper (standardized)",
+     ylab = "COHORTS Index with standardized data (standardized)")
+```
+
+\elandscape
