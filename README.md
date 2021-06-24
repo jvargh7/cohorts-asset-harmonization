@@ -22,4 +22,10 @@ Temporally-harmonized asset-based measures of wealth can be used to study the as
 
 **Methods:**    
 Using data from five birth cohorts from three continents, we develop temporally-harmonized asset indices over the life course through polychoric principal component analysis of a consistently collected set of assets. For each cohort, we compare harmonized index to cross-sectional indices created using more comprehensive asset measures using rank correlations. We evaluate the correlation of the harmonized index in early life and adulthood with maternal schooling and attained schooling, respectively.    
-0
+
+**Results:**    
+Temporally-harmonized asset indices developed from a consistently-collected set of assets (range: 10 in South Africa to 30 in Philippines) suggested that mean wealth improved over time for all birth cohorts. Cross-sectional indices created separately for each study wave were correlated with the harmonized index for all cohorts (Brazil: r = 0.78 to 0.96; Guatemala: r = 0.81 to 0.95; India: 0.75 to 0.93; Philippines: r = 0.92 to 0.99; South Africa: r = 0.84 to 0.96). Maternal schooling (r = 0.15 to 0.56) and attained schooling (r = 0.23 to 0.53) were positively correlated with the harmonized asset index in the corresponding wave.    
+
+**Conclusions:**   
+Temporally-harmonized asset indices displayed coherence with cross-sectional indices as well as construct validity with schooling. 
+
