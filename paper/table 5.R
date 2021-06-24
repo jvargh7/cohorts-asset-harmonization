@@ -35,7 +35,7 @@ sa_df <- readRDS(paste0(path_dissertation,"/aim 2/working/cohorts/south africa/a
   dplyr::select(id, pc_child,pc_adult,moscho,eduyr)
 
 
-table4 <- bind_rows(b9_df %>% mutate(cohort = "B9"),
+table5 <- bind_rows(b9_df %>% mutate(cohort = "B9"),
                      gt_df %>% mutate(cohort = "GT"),
                      in_df %>% mutate(cohort = "IN"),
                      ph_df %>% mutate(cohort = "PH"),

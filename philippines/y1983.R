@@ -39,7 +39,8 @@ assets83 <- mbase2 %>%
          f_cookfuel = poly_asset_cat(p_cookfuel, w = c(4:6), m = c(2,7), b = c(1,3)),
          
          f_gencond = poly_asset_cat(p_gencond,w = c(1), m = c(2,3), b = c(4)),
-         f_areafood = poly_asset_cat(p_areafood, w = c(3), m = c(2), b = c(1))
+         f_areafood = poly_asset_cat(p_areafood, w = c(3), m = c(2), b = c(1)),
+         f_material = poly_asset_cat(p_material,w = c(1), m = c(2), b = c(3))
   ) %>% 
   mutate(p_sourcedw = poly_asset_num(p_sourcedw,w = c(7,4),m = c(5,6,8), b = c(1,2,3)),
          p_watercon = poly_asset_num(p_watercon, w= c(5,6),m = c(4,8,10,11), b = c(1,2,3,7,9)),

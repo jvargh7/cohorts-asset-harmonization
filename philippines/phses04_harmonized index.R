@@ -13,7 +13,7 @@ pca_df <- pcall %>%
   dplyr::filter(year %in% years) %>% 
   dplyr::select(year,uncchdid,one_of(pca_vars))
 
-pca_df_unimputed <- pca_df
+pca_df_unimputed <- pca_df  %>% arrange(year,uncchdid)
 
 # Imputation ------------
 

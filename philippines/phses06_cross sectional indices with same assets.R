@@ -3,12 +3,15 @@
 # source(paste0(path_harmonization_repo,"/philippines/phses03_common assets.R"))
 source(paste0(path_harmonization_repo,"/philippines/phses04_harmonized index.R"))
 
+
 years = years
 items = c("all")
 
 pca_df <- readRDS(paste0(path_harmonization_folder,"/philippines/working/pca_df_unimputed.RDS")) %>% 
   dplyr::filter(year %in% years) %>% 
   dplyr::select(year,uncchdid,one_of(pca_vars),pc,pc2,pc3)
+
+
 
 # pca_df_unimputed <- pca_df
 
@@ -57,7 +60,8 @@ for (row in 1:nrow(ses_spearman_cs)){
   
   temp_pca_df = pca_df %>% 
     dplyr::filter(year == y) %>% 
-    dplyr::select(-one_of(i))
+    dplyr::select(-one_of(i)) %>% 
+    arrange(uncchdid)
   
   # Removing zero-variance variables
   zero_var_indices <- caret::nearZeroVar(temp_pca_df)
