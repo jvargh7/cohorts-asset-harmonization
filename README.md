@@ -1,5 +1,13 @@
 # Changes in wealth across the life course in birth cohorts from five low- and middle-income countries
 
+**Key Messages**:     
+•	Temporally-harmonized asset indices are useful to assess relative importance of wealth at different life stages with health on the same scale.    
+•	Harmonized indices using a subset of assets were correlated with cross-sectional asset indices using all available assets in five LMIC birth cohorts.    
+•	Harmonized indices displayed construct validity, as demonstrated by its correlation with schooling.    
+•	Harmonized indices were robust to alternate specifications such as shorter lists of assets, study years, and factor extraction procedures.    
+
+Link to article: https://doi.org/10.1016/j.ssmph.2021.100976  
+
 **Authors:**    
 Jithin Sam Varghese (1), Linda S. Adair (2), Shivani A. Patel (3), Sonny Agustin Bechayda (4,5), Santosh K. Bhargava (6), Delia B. Carba (4), Bernardo L. Horta (7), Natalia P. Lima (7), Reynaldo Martorell (3), Ana M.B. Menezes (7), Shane A. Norris (8), Linda M. Richter (9), Manuel Ramirez-Zea (10), Harshpal Singh Sachdev (11), Fernando C. Wehrmeister (7), Aryeh D. Stein (3), for the COHORTS group     
 
